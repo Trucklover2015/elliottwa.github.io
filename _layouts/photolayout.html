@@ -1,8 +1,15 @@
+---
+layout: compress
+---
+
+{% include base_path %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Photos I Took</title>
+  {% include head.html %}
   <style>
     * {
       box-sizing: border-box;
@@ -78,6 +85,10 @@
   </style>
 </head>
 <body>
+
+  {% include browser-upgrade.html %}
+  {% include masthead.html %}
+
   <div class="wrapper">
     <h2>RECENT WORK</h2>
 
@@ -113,5 +124,15 @@
       </figure>
     </div>
   </div>
+
+  <div class="page__footer">
+    <footer>
+      {% include footer/custom.html %}
+      {% include footer.html %}
+    </footer>
+  </div>
+
+  {% include scripts.html %}
+
 </body>
 </html>

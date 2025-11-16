@@ -92,35 +92,21 @@ layout: compress
     <h2>RECENT WORK</h2>
 
     <div class="work-grid">
-      <!-- column 1 -->
-      <figure class="work-item work-item--short">
-        <img src="{{ base_path }}/images/Photography/DSCF2441.JPEG" alt="Birds">
-      </figure>
-
-      <!-- column 2 (center tall hero) -->
-      <figure class="work-item work-item--tall">
-        <img src="{{ base_path }}/images/Photography/DSCF2441.JPEG" alt="Project 2">
-      </figure>
-
-      <!-- column 3 -->
-      <figure class="work-item work-item--short">
-        <img src="{{ base_path }}/images/Photography/IMG_0664.JPEG" alt="Rolling hills">
-      </figure>
-
-      <!-- column 1 tall -->
-      <figure class="work-item work-item--tall">
-        <img src="{{ base_path }}/images/Photography/DSCF2441.JPEG" alt="Project 4">
-      </figure>
-
-      <!-- column 2 short -->
-      <figure class="work-item work-item--short">
-        <img src="{{ base_path }}/images/Photography/IMG_0664.JPEG" alt="Project 5">
-      </figure>
-
-      <!-- column 3 tall -->
-      <figure class="work-item work-item--tall">
-        <img src="{{ base_path }}/images/Photography/DSCF2441.JPEG" alt="Project 6">
-      </figure>
+      {% assign photos = site.static_files | where: "image", true %}
+      {% for photo in photos %}
+        {% if photo.path contains "/images/Photography/" %}
+          {% capture remainder %}{{ forloop.index0 | modulo: 3 }}{% endcapture %}
+          {% if remainder == "1" %}
+            <figure class="work-item work-item--tall">
+              <img src="{{ base_path }}{{ photo.path }}" alt="Photo">
+            </figure>
+          {% else %}
+            <figure class="work-item work-item--short">
+              <img src="{{ base_path }}{{ photo.path }}" alt="Photo">
+            </figure>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
     </div>
   </div>
 

@@ -66,6 +66,106 @@ layout: compress
         grid-template-columns: 1fr;
       }
     }
+    /* Lightbox styles */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.85);
+      z-index: 9999;
+    }
+
+    .lightbox.open {
+      display: flex;
+    }
+
+    .lightbox__inner {
+      position: relative;
+      /* fixed display area to avoid layout jumps when switching aspect ratios */
+      width: 65vw;
+      height: 65vh;
+      max-width: 94vw;
+      max-height: 86vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      transition: width 220ms ease, height 220ms ease;
+    }
+
+    .lightbox__img {
+      /* contained inside the fixed display area */
+      max-width: 100%;
+      max-height: 100%;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      transition: opacity 220ms ease, transform 220ms ease;
+      opacity: 1;
+      will-change: opacity, transform;
+      display: block;
+    }
+
+    .lightbox__frame {
+      width: 130%;
+      height: 130%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
+
+    /* Mobile override: allow a bit more room on narrow screens */
+    @media (max-width: 700px) {
+      .lightbox__inner { max-width: 94vw; max-height: 86vh; }
+      .lightbox__btn { padding: 10px 12px; font-size: 18px; }
+    }
+
+    .lightbox__btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      border: none;
+      padding: 12px 14px;
+      cursor: pointer;
+      font-size: 20px;
+    }
+
+    .lightbox__btn:focus { outline: 2px solid #fff; }
+
+    .lightbox__prev { left: -50px; }
+    .lightbox__next { right: -50px; }
+
+    .lightbox__close {
+      position: absolute;
+      /* position relative to the viewport (lightbox container) */
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      color: #fff;
+      border: none;
+      font-size: 26px;
+      cursor: pointer;
+      z-index: 10010;
+    }
+
+    .lightbox__counter {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      transform: none;
+      color: #ddd;
+      font-size: 13px;
+      background: rgba(0,0,0,0.35);
+      padding: 6px 10px;
+      border-radius: 6px;
+      z-index: 10012;
+    }
   </style>
 </head>
 <body>
@@ -79,12 +179,11 @@ layout: compress
     </h2>
 
     <div class="work-grid">
-      {% for file in site.static_files %}
-        {% if file.path contains "/images/Photography/" %}
+      {% assign photos = site.static_files | where_exp: "f", "f.path contains '/images/Photography/'" | sort: "path" | reverse %}
+      {% for file in photos %}
           <figure class="work-item">
             <img src="{{ base_path }}{{ file.path }}" alt="Photo">
           </figure>
-        {% endif %}
       {% endfor %}
     </div>
   </div>
@@ -96,7 +195,111 @@ layout: compress
     </footer>
   </div>
 
+  <!-- Lightbox modal -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <button class="lightbox__close" id="lightboxClose" aria-label="Close">✕</button>
+    <div class="lightbox__counter" id="lightboxCounter"></div>
+    <div class="lightbox__inner" role="dialog" aria-modal="true">
+      <button class="lightbox__btn lightbox__prev" id="lightboxPrev" aria-label="Previous">◀</button>
+      <div class="lightbox__frame">
+        <img src="" alt="" class="lightbox__img" id="lightboxImg">
+      </div>
+      <button class="lightbox__btn lightbox__next" id="lightboxNext" aria-label="Next">▶</button>
+    </div>
+  </div>
+
   {% include scripts.html %}
+
+  <script>
+    (function(){
+      var lightbox = document.getElementById('lightbox');
+      var imgEl = document.getElementById('lightboxImg');
+      var prevBtn = document.getElementById('lightboxPrev');
+      var nextBtn = document.getElementById('lightboxNext');
+      var closeBtn = document.getElementById('lightboxClose');
+      var counter = document.getElementById('lightboxCounter');
+
+      var items = [];
+      var current = 0;
+
+      function gather() {
+        items = Array.prototype.slice.call(document.querySelectorAll('.work-item img'))
+          .map(function(i){ return i.getAttribute('src'); });
+      }
+
+      function openAt(index){
+        if(!items.length) gather();
+        current = (index + items.length) % items.length;
+        imgEl.src = items[current];
+        imgEl.alt = '';
+        // Fade out current image, change src, then fade in when loaded
+        try { imgEl.style.opacity = 0; } catch(e){}
+        // ensure removing any previous onload
+        imgEl.onload = null;
+        imgEl.src = items[current];
+        imgEl.alt = '';
+        imgEl.onload = function(){
+          var naturalW = imgEl.naturalWidth || 1;
+        var naturalH = imgEl.naturalHeight || 1;
+        if (naturalH > naturalW) {
+            lightbox.classList.add('is-portrait');
+        } else {
+            lightbox.classList.remove('is-portrait');
+        }
+            // fade in
+          imgEl.style.opacity = 1;
+        };
+
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden','false');
+        updateCounter();
+        document.body.style.overflow = 'hidden';
+        setTimeout(function(){ imgEl.focus && imgEl.focus(); }, 50);
+      }
+
+      function close(){
+        lightbox.classList.remove('open');
+        lightbox.setAttribute('aria-hidden','true');
+        document.body.style.overflow = '';
+      }
+
+      function prev(){ openAt(current - 1); }
+      function next(){ openAt(current + 1); }
+
+      function updateCounter(){
+        counter.textContent = (current + 1) + ' / ' + items.length;
+      }
+
+      document.addEventListener('DOMContentLoaded', function(){
+        gather();
+        var thumbs = document.querySelectorAll('.work-item img');
+        thumbs.forEach(function(img, idx){
+          img.style.cursor = 'zoom-in';
+          img.addEventListener('click', function(e){
+            e.preventDefault();
+            openAt(idx);
+          });
+        });
+
+        // close on backdrop click
+        lightbox.addEventListener('click', function(e){
+          if(e.target === lightbox) close();
+        });
+
+        prevBtn.addEventListener('click', function(e){ e.stopPropagation(); prev(); });
+        nextBtn.addEventListener('click', function(e){ e.stopPropagation(); next(); });
+        closeBtn.addEventListener('click', function(e){ e.stopPropagation(); close(); });
+
+        document.addEventListener('keydown', function(e){
+          if(lightbox.classList.contains('open')){
+            if(e.key === 'Escape') close();
+            else if(e.key === 'ArrowLeft') prev();
+            else if(e.key === 'ArrowRight') next();
+          }
+        });
+      });
+    })();
+  </script>
 
 </body>
 </html>

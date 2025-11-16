@@ -1,5 +1,12 @@
-{% if site.url %}
+{%- comment -%}
+Use a full absolute URL only in production. When running locally (development),
+use the `site.baseurl` (usually empty) so assets are referenced relatively
+and will load from `localhost`. This prevents links from pointing to the
+remote GitHub Pages URL during local `jekyll serve`.
+{%- endcomment -%}
+
+{% if jekyll.environment == "production" %}
   {% assign base_path = site.url | append: site.baseurl %}
 {% else %}
-  {% assign base_path = site.github.url %}
+  {% assign base_path = site.baseurl | default: "" %}
 {% endif %}

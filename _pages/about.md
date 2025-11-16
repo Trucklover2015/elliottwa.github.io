@@ -7,4 +7,5 @@ redirect_from:
   - /about.html
 ---
 
-My name Elliott. I have no idea how to code, thank you Jekyll.
+My name Elliott. 
+I have no idea how to code, so this is a start.

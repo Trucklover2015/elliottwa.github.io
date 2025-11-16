@@ -179,11 +179,17 @@ layout: compress
     </h2>
 
     <div class="work-grid">
-      {% assign photos = site.static_files | where_exp: "f", "f.path contains '/images/Photography/'" | sort: "path" | reverse %}
+      {% assign photos = site.static_files | where_exp: "f", "f.path contains '/images/Photography/'" | sort: "name" | reverse %}
+      {% assign seen = "" %}
       {% for file in photos %}
+        {% assign fname = file.name | downcase | split: "." | first %}
+        {% if seen contains fname %}
+        {% else %}
+          {% assign seen = seen | append: fname | append: "|" %}
           <figure class="work-item">
             <img src="{{ base_path }}{{ file.path }}" alt="Photo">
           </figure>
+        {% endif %}
       {% endfor %}
     </div>
   </div>

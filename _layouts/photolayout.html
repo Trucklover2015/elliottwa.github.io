@@ -17,7 +17,6 @@ layout: compress
     }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #050508;
       color: #fff;
       min-height: 100vh;
@@ -39,9 +38,7 @@ layout: compress
 
     .work-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      /* base “row height” – taller items will span multiple rows */
-      grid-auto-rows: 160px;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
       gap: 24px;
     }
 
@@ -54,31 +51,20 @@ layout: compress
 
     .work-item img {
       width: 100%;
-      height: 100%;
-      object-fit: contain;
+      height: auto;
       display: block;
-    }
-
-    /* height variants */
-    .work-item--short {
-      grid-row: span 1;
-    }
-
-    .work-item--tall {
-      grid-row: span 2;
     }
 
     /* small responsiveness */
     @media (max-width: 900px) {
       .work-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       }
     }
 
     @media (max-width: 600px) {
       .work-grid {
         grid-template-columns: 1fr;
-        grid-auto-rows: 220px;
       }
     }
   </style>
@@ -94,19 +80,11 @@ layout: compress
     </h2>
 
     <div class="work-grid">
-      {% assign photos = site.static_files | where: "image", true %}
-      {% for photo in photos %}
-        {% if photo.path contains "/images/Photography/" %}
-          {% capture remainder %}{{ forloop.index0 | modulo: 3 }}{% endcapture %}
-          {% if remainder == "1" %}
-            <figure class="work-item work-item--tall">
-              <img src="{{ base_path }}{{ photo.path }}" alt="Photo">
-            </figure>
-          {% else %}
-            <figure class="work-item work-item--short">
-              <img src="{{ base_path }}{{ photo.path }}" alt="Photo">
-            </figure>
-          {% endif %}
+      {% for file in site.static_files %}
+        {% if file.path contains "/images/Photography/" %}
+          <figure class="work-item">
+            <img src="{{ base_path }}{{ file.path }}" alt="Photo">
+          </figure>
         {% endif %}
       {% endfor %}
     </div>

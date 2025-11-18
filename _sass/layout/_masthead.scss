@@ -7,7 +7,10 @@
   background: var(--global-bg-color);
   height: fit-content;
   top: 0;
+  left: 0;
+  right: 0;
   width: 100%;
+  box-sizing: border-box;
 
   -webkit-animation: intro 0.3s both;
           animation: intro 0.3s both;
